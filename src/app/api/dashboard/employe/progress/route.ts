@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
     })
 
     // 7. Compétences développées (basé sur les niveaux de formation)
-    const skillsProgress = {}
+    const skillsProgress: Record<string, { total: number; completed: number }> = {}
     userFormations.forEach(uf => {
       const skill = uf.formation.level || 'Général'
       if (!skillsProgress[skill]) {
@@ -213,7 +213,7 @@ export async function GET(request: NextRequest) {
         sessionId: attendance.sessionId,
         formationTitle: attendance.session.formation.title,
         sessionDate: attendance.session.startDate,
-        isConfirmed: attendance.isConfirmed
+        isConfirmed: attendance.isPresent
       })),
       insights: {
         mostActiveFormation: formationProgress.reduce((max, formation) => 

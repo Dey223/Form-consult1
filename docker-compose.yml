@@ -1,0 +1,49 @@
+# ============================================================
+# docker-compose.yml — FormConsult
+# Lance l'application + la base de données en une commande :
+#   docker compose up
+# ============================================================
+
+services:
+
+  # Base de données PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: formconsult-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: formconsult
+      POSTGRES_PASSWORD: formconsult123
+      POSTGRES_DB: formconsult
+    ports:
+      - "5433:5432"   # 5433 sur l'hôte → 5432 dans le conteneur
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  # Interface web pour visualiser la base (optionnel, pratique en dev)
+  adminer:
+    image: adminer
+    container_name: formconsult-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  # Application FormConsult
+  app:
+    build: .
+    container_name: formconsult-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Dans Docker, l'app parle au service "db" (pas localhost)
+      DATABASE_URL: "postgresql://formconsult:formconsult123@db:5432/formconsult"
+      NEXTAUTH_SECRET: "dev-secret-temporaire-changer-en-prod"
+      NEXTAUTH_URL: "http://localhost:3000"
+    depends_on:
+      - db
+
+volumes:
+  db_data:

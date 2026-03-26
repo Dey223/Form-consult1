@@ -30,11 +30,11 @@ async function createNotification(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { formationId: string } }
+  { params }: { params: Promise<{ formationId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
@@ -44,7 +44,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
-    const { formationId } = params
+    const { formationId } = await params
     const body = await request.json()
     const { isActive } = body
 

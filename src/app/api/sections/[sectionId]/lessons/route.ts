@@ -110,7 +110,7 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { sectionId: string } }
+  { params }: { params: Promise<{ sectionId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -122,10 +122,12 @@ export async function GET(
       );
     }
 
+    const { sectionId } = await params;
+
     // Vérifier l'accès à la section
     const section = await prisma.section.findFirst({
       where: {
-        id: params.sectionId,
+        id: sectionId,
         OR: [
           {
             formation: {
@@ -151,7 +153,7 @@ export async function GET(
     // Récupérer les leçons
     const lessons = await prisma.lesson.findMany({
       where: {
-        sectionId: params.sectionId,
+        sectionId: sectionId,
       },
       orderBy: { orderIndex: "asc" },
     });

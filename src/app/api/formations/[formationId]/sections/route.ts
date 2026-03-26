@@ -14,7 +14,7 @@ const createSectionSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { formationId: string } }
+  { params }: { params: Promise<{ formationId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -33,13 +33,14 @@ export async function POST(
       );
     }
 
+    const { formationId } = await params;
     const body = await request.json();
     const validatedData = createSectionSchema.parse(body);
 
     // Vérifier que la formation appartient au formateur
     const formation = await prisma.formation.findFirst({
       where: {
-        id: params.formationId,
+        id: formationId,
         authorId: session.user.id,
       },
       include: {
@@ -64,9 +65,12 @@ export async function POST(
     // Créer la section
     const section = await prisma.section.create({
       data: {
-        ...validatedData,
+        title: validatedData.title,
+        description: validatedData.description,
+        isPublished: validatedData.isPublished,
+        isFree: validatedData.isFree,
         orderIndex: nextOrderIndex,
-        formationId: params.formationId,
+        formationId: formationId,
       },
     });
 
@@ -90,7 +94,7 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { formationId: string } }
+  { params }: { params: Promise<{ formationId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -102,10 +106,12 @@ export async function GET(
       );
     }
 
+    const { formationId } = await params;
+
     // Vérifier que l'utilisateur a accès à cette formation
     const formation = await prisma.formation.findFirst({
       where: {
-        id: params.formationId,
+        id: formationId,
         OR: [
           { authorId: session.user.id }, // Formateur propriétaire
           { isActive: true }, // Formation publique
@@ -123,7 +129,7 @@ export async function GET(
     // Récupérer les sections avec leurs leçons
     const sections = await prisma.section.findMany({
       where: {
-        formationId: params.formationId,
+        formationId: formationId,
       },
       include: {
         lessons: {

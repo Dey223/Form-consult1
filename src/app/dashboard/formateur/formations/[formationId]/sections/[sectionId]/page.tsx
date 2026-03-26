@@ -5,10 +5,10 @@ import { prisma } from "@/lib/prisma";
 import EditSectionForm from "@/components/dashboard/formateur-tabs/EditSectionForm";
 
 interface PageProps {
-  params: { 
+  params: Promise<{
     formationId: string;
     sectionId: string;
-  };
+  }>;
 }
 
 export default async function SectionDetailsPage({ params }: PageProps) {
@@ -22,10 +22,12 @@ export default async function SectionDetailsPage({ params }: PageProps) {
     redirect("/dashboard");
   }
 
+  const { formationId, sectionId } = await params;
+
   // Récupérer la formation pour vérifier les permissions
   const formation = await prisma.formation.findFirst({
     where: {
-      id: params.formationId,
+      id: formationId,
       authorId: session.user.id,
     },
   });
@@ -37,8 +39,8 @@ export default async function SectionDetailsPage({ params }: PageProps) {
   // Récupérer la section avec ses leçons et ressources
   const section = await prisma.section.findFirst({
     where: {
-      id: params.sectionId,
-      formationId: params.formationId,
+      id: sectionId,
+      formationId: formationId,
     },
     include: {
       lessons: {
@@ -52,7 +54,7 @@ export default async function SectionDetailsPage({ params }: PageProps) {
   });
 
   if (!section) {
-    redirect(`/dashboard/formateur/formations/${params.formationId}/curriculum`);
+    redirect(`/dashboard/formateur/formations/${formationId}/curriculum`);
   }
 
   // Vérifier si la section est complète
@@ -66,7 +68,7 @@ export default async function SectionDetailsPage({ params }: PageProps) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <EditSectionForm
           section={section}
-          formationId={params.formationId}
+          formationId={formationId}
           isCompleted={isCompleted}
         />
       </div>

@@ -1,0 +1,26 @@
+# ============================================================
+# group_vars/formconsult.yml — Variables pour le groupe "formconsult"
+# ============================================================
+# Ce fichier est chargé automatiquement par Ansible quand il
+# traite le groupe [formconsult] de inventory.ini.
+#
+# ⚠️ CE FICHIER EST COMMITÉ car il ne contient QUE des valeurs
+#    non-secrètes ou des placeholders.
+#    Pour les vraies clés Stripe/Mux → utiliser ansible-vault
+#    ou les passer avec --extra-vars lors du déploiement.
+# ============================================================
+
+# IP publique du serveur EC2
+server_ip: "35.181.50.81"
+
+# NextAuth — à remplacer par une vraie valeur en prod
+# Générer avec : openssl rand -base64 32
+nextauth_secret: "CHANGER-MOI-openssl-rand-base64-32"
+
+# Services externes — laisser vide jusqu'à configuration
+stripe_publishable_key: ""
+stripe_secret_key: ""
+stripe_webhook_secret: ""
+mux_token_id: ""
+mux_token_secret: ""
+uploadthing_token: ""

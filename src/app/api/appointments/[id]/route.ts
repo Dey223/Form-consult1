@@ -239,7 +239,7 @@ export async function PUT(
           status: newStatus as any,
           meetingUrl: meetingUrl || appointment.meetingUrl,
           notes: notes || appointment.notes,
-          assignedConsultantId: consultantId || appointment.assignedConsultantId
+          consultantId: consultantId || appointment.consultantId
         },
         include: {
           user: { select: { id: true, name: true, email: true } },

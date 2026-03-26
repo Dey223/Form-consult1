@@ -55,3 +55,12 @@ Thumbs.db
 # Logs
 logs
 *.log
+
+# Terraform
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/*.tfvars
+
+# Ansible
+ansible/group_vars/secrets.yml

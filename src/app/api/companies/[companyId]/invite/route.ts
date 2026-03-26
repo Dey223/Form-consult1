@@ -7,16 +7,16 @@ import { sendEmail } from '@/lib/email'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    const { companyId } = params
+    const { companyId } = await params
     const { email, role } = await request.json()
 
     // Validation

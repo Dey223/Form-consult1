@@ -7,11 +7,11 @@ const prisma = new PrismaClient()
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
@@ -26,7 +26,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
     }
 
-    const categoryId = params.id
+    const { id } = await params
+    const categoryId = id
 
     // Vérifier que la catégorie existe
     const category = await prisma.category.findUnique({

@@ -1,0 +1,107 @@
+# ============================================================
+# playbook.yml — Script de déploiement FormConsult
+# ============================================================
+# Un playbook Ansible = une liste de tâches à exécuter sur
+# les serveurs distants, dans l'ordre défini.
+#
+# Lancer ce playbook :
+#   ansible-playbook -i inventory.ini playbook.yml
+#
+# Ce qu'il fait (dans l'ordre) :
+#   1. Vérifie que Docker tourne
+#   2. Installe git sur le serveur
+#   3. Clone le repo GitHub FormConsult
+#   4. Crée le fichier .env sur le serveur
+#   5. Lance l'application avec docker-compose
+# ============================================================
+
+---
+- name: Déployer FormConsult sur EC2
+  hosts: formconsult       # Groupe défini dans inventory.ini
+  become: yes              # Exécute les tâches en sudo (root)
+
+  vars:
+    app_dir: /home/ec2-user/formconsult
+    github_repo: https://github.com/Dey223/Form-consult.git
+    server_ip: "35.181.50.81"
+
+  tasks:
+
+    # ----------------------------------------------------------
+    # TÂCHE 1 — S'assurer que Docker tourne
+    # ----------------------------------------------------------
+    # Docker a été installé par le user_data de Terraform au
+    # démarrage du serveur. On vérifie qu'il est bien actif.
+    - name: S'assurer que Docker est démarré et activé au boot
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    # ----------------------------------------------------------
+    # TÂCHE 2 — Installer Git
+    # ----------------------------------------------------------
+    # Git est nécessaire pour cloner le repo depuis GitHub.
+    # yum = gestionnaire de paquets sur Amazon Linux (comme apt sur Ubuntu)
+    - name: Installer git
+      yum:
+        name: git
+        state: present
+
+    # ----------------------------------------------------------
+    # TÂCHE 3 — Cloner ou mettre à jour le repo GitHub
+    # ----------------------------------------------------------
+    # Si le dossier n'existe pas → clone le repo
+    # Si le dossier existe déjà → git pull (mise à jour)
+    # C'est comme un déploiement automatique depuis GitHub.
+    - name: Cloner le repo FormConsult depuis GitHub
+      git:
+        repo: "{{ github_repo }}"
+        dest: "{{ app_dir }}"
+        version: master
+        force: yes        # Écrase les modifications locales si besoin
+      become_user: ec2-user
+
+    # ----------------------------------------------------------
+    # TÂCHE 4 — Créer le fichier .env
+    # ----------------------------------------------------------
+    # Le template templates/env.j2 est transformé en vrai .env
+    # avec les variables remplacées par leurs valeurs.
+    # mode: '0600' = lisible uniquement par ec2-user (sécurité)
+    - name: Déployer le fichier .env de production
+      template:
+        src: templates/env.j2
+        dest: "{{ app_dir }}/.env"
+        owner: ec2-user
+        mode: '0600'
+
+    # ----------------------------------------------------------
+    # TÂCHE 5 — Lancer l'application
+    # ----------------------------------------------------------
+    # docker compose up --build -d :
+    #   --build = reconstruit l'image si le code a changé
+    #   -d      = détaché (tourne en arrière-plan)
+    # On utilise shell car le module docker_compose nécessite
+    # une collection Ansible supplémentaire (community.docker)
+    - name: Construire et lancer les conteneurs Docker
+      shell: |
+        cd {{ app_dir }}
+        docker compose up --build -d
+      become_user: ec2-user
+
+    # ----------------------------------------------------------
+    # TÂCHE 6 — Vérifier que l'app tourne
+    # ----------------------------------------------------------
+    # Affiche l'état des conteneurs pour confirmer que tout
+    # est bien démarré.
+    - name: Vérifier l'état des conteneurs
+      shell: docker compose ps
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ec2-user
+      register: compose_status    # Stocke le résultat dans une variable
+
+    # Affiche le résultat dans la sortie Ansible
+    - name: Afficher l'état des conteneurs
+      debug:
+        msg: "{{ compose_status.stdout_lines }}"

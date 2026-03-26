@@ -5,16 +5,16 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    const { companyId } = params
+    const { companyId } = await params
 
     // Vérifier les permissions
     if (session.user.role !== 'SUPER_ADMIN' && session.user.companyId !== companyId) {

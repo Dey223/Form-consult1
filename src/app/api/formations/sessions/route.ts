@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
           attendees: {
             select: {
               userId: true,
-              isConfirmed: true
+              isPresent: true
             }
           }
         },
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
         attendees: {
           select: {
             userId: true,
-            isConfirmed: true
+            isPresent: true
           }
         }
       },

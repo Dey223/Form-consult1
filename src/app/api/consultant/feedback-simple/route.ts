@@ -190,10 +190,10 @@ export async function GET(request: NextRequest) {
     })
 
     // 7. Top des domaines d'amélioration
-    const improvementAreas = {}
+    const improvementAreas: Record<string, number> = {}
     feedbacks.forEach(feedback => {
       if (feedback.improvementAreas && Array.isArray(feedback.improvementAreas)) {
-        feedback.improvementAreas.forEach(area => {
+        feedback.improvementAreas.forEach((area: string) => {
           improvementAreas[area] = (improvementAreas[area] || 0) + 1
         })
       }

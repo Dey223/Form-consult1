@@ -221,15 +221,11 @@ export async function POST(request: NextRequest) {
         name,
         email,
         role: 'CONSULTANT',
-        specialty: specialty || null,
-        bio: bio || null
       },
       select: {
         id: true,
         name: true,
         email: true,
-        specialty: true,
-        bio: true,
         role: true,
         createdAt: true
       }
